@@ -1,0 +1,52 @@
+version: "3.8"
+services:
+  mongo:
+    image: mongo:4.4
+    container_name: mongo
+    hostname: mongo
+    restart: unless-stopped
+    ports:
+      - $MONGO_HOST_PORT:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=$MONGO_ROOT_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD=$MONGO_ROOT_PASSWORD
+      - MONGO_INITDB_DATABASE=$MONGO_DB
+      - MONGO_DB_USERNAME=$MONGO_DB_USERNAME
+      - MONGO_DB_PASSWORD=$MONGO_DB_PASSWORD
+    volumes:
+      - $MONGO_DATA_HOST_PATH:/data/db/
+      - $MONGO_LOG_HOST_PATH:/var/log/mongodb/
+      - $MONGO_INITDB_SCRIPTS_HOST_PATH:/docker-entrypoint-initdb.d/
+    networks:
+      - main-network
+    command: ["--bind_ip", "0.0.0.0"]
+    
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: $APP_NAME
+    container_name: $APP_NAME
+    restart: on-failure
+    depends_on:
+      - mongo
+    ports:
+      - $SERVER_HOST_PORT:8000
+    environment:
+      - SERVER_PORT=8000
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_APPLICATION_NAME=$APP_NAME
+      - SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE=$MONGO_DB
+      - SPRING_DATA_MONGODB_AUTO_INDEX_CREATION=$MONGO_AUTO_INDEX_CREATION
+      - SPRING_DATA_MONGODB_HOST=mongo
+      - SPRING_DATA_MONGODB_PORT=27017
+      - SPRING_DATA_MONGODB_USERNAME=$MONGO_DB_USERNAME
+      - SPRING_DATA_MONGODB_PASSWORD=$MONGO_DB_PASSWORD
+      - SPRING_DATA_MONGODB_DATABASE=$MONGO_DB
+    networks:
+      - main-network
+
+networks:
+  main-network:
+    external:
+      name: $NETWORK_NAME
