@@ -1,16 +1,8 @@
 FROM openjdk:11-jdk-slim
 
 # time zone
-ENV TZ=Asia/Tehran
+ENV TZ=Europe/Berlin
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
-# remove us from sources list
-RUN sed -i 's|http://us.|http://|g' /etc/apt/sources.list
-
-# add iran sources
-RUN > /etc/apt/sources.list
-RUN echo "deb http://debian.asis.ai/debian buster main" >> /etc/apt/sources.list
-RUN echo "deb http://debian.asis.ai/debian-security buster/updates main" >> /etc/apt/sources.list
 
 # update sources
 RUN apt-get update
